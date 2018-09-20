@@ -1,1 +1,1 @@
-# texteditor
+texteditor using ncurses
