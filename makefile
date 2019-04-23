@@ -1,3 +1,2 @@
-c=gcc
 a: a.c
-	$(c) -g -o a a.c buffer.h -lncurses
+	gcc -g -o a a.c -lncurses
