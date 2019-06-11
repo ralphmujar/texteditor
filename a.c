@@ -11,6 +11,8 @@ int x, y, c, row, col, slen, limit;
 
 
 char **editBuffer();
+char **emptyBuffer();
+int keyPress();
 
 int right();
 int left();
@@ -23,6 +25,8 @@ int insert(int c);
 int shiftRight();
 int shiftLeft();
 int enter();
+int tab();
+void println();
 
 int main(int argc, char *argv[])
 {
@@ -36,13 +40,19 @@ int main(int argc, char *argv[])
 	col=0;
 
 	fp = fopen(argv[1], "r");
+	b = calloc(limit, sizeof(char *));
 
+//	if (fp == NULL) {
+		//perror("no file\n");
 	if (fp == NULL) {
-		perror("no file\n");
+
+		b[row] = malloc(limit * sizeof(char));
+		emptyBuffer();
+
 	} else {
 		char s[60];
 		
-		b = calloc(limit, sizeof(char *));
+		//b = calloc(limit, sizeof(char *));
 
 		while(fgets(s, 60, fp) != NULL)
 		{
@@ -58,6 +68,18 @@ int main(int argc, char *argv[])
 
 }
 
+char **emptyBuffer()
+{
+
+	initscr();
+	move(y, x);
+	keypad(stdscr, 1);
+	keyPress();
+	endwin();
+}
+
+
+
 char **editBuffer()
 {
 
@@ -68,11 +90,19 @@ char **editBuffer()
 	}
 	move(y, x);
 
+	keypad(stdscr, 1);
+	keyPress();
+	endwin();	
+
+
+}
+
+int keyPress() {
+
 	WINDOW *w = newwin(1, 10, 90, 0);
 	WINDOW *w_gap = newwin(1, 20, 90, 40);
 	refresh();
 
-	keypad(stdscr, 1);
 	while ((c=getch()) != 19)
 	{
 		if (c == KEY_RIGHT) {
@@ -89,13 +119,16 @@ char **editBuffer()
 			left();
 			mvdelch(y, x);
 			shiftLeft();
-
-		} else if (c == 27) {
-			 save();
+	
+		} else if (c == 9) {
+			tab(c);
 		} else if (c == 10) {
 
 			x=0; down();
 			enter(c);
+		} else if (c == 27) {
+			 save();
+
 
 		} else {
 			insert(c);
@@ -106,7 +139,6 @@ char **editBuffer()
 		wrefresh(w);
 		wrefresh(w_gap);
 	}
-	endwin();	
 
 
 }
@@ -126,8 +158,12 @@ int left()
 	move(y, (x--)-1);
 	//moveGap();
 	if (x < 0) {
-		x=10;
-		up();
+		if (y <= 0) {
+			down();
+		} else {
+			x = (strlen(b[y-1]) - 1);
+			up();
+		}
 	}
 }
 
@@ -152,10 +188,18 @@ int down()
 
 int insert(int c)
 {
-	shiftRight();
-	b[y][x] = c;
-	mvaddch(y, x, c);
-	right();
+	if (b[y][x+1] != 0) {
+
+		shiftRight();
+		b[y][x] = c;
+		mvaddch(y, x, c);
+		right();
+
+	} else {
+
+		b[y][x] = c;
+		println();
+	}
 }
 
 int moveGap()
@@ -188,6 +232,26 @@ int shiftRight()
 
 }
 
+int tab(int c)
+{
+	int n, i;
+	n = 8;
+	shiftRight();
+	b[y][x] = c;
+	right();
+
+	for (i=0; i < n; i++) {
+		shiftRight();
+		b[y][x] = 32;
+		right();
+	}
+
+	for (i=0; i < (strlen(b[y])+1); i++) {
+		mvprintw(y, i, "%c", b[y][i]);
+	}
+	move(y, x);
+}
+
 
 int shiftLeft()
 {
@@ -197,6 +261,7 @@ int shiftLeft()
 		b[y][i] = b[y][i+1];
 	}
 }
+
 
 int enter()
 {
@@ -234,6 +299,14 @@ int enter()
 	move(y, 0);
 }
 
+void println()
+{
+	for (int i=0; i < (strlen(b[y])+1); i++) {
+		mvprintw(y, i, "%c", b[y][i]);
+	}
+	move(y, (x++)+1);
+}
+
 int save()
 {
 	FILE *fp2 = fopen("o.txt", "w+");
@@ -251,4 +324,3 @@ int save()
 	wprintw(w2, "save!");
 	wrefresh(w2);
 }
-
