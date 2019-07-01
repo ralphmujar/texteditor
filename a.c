@@ -10,6 +10,7 @@ gapBuf *gb, gbuff;
 int x, y, c, row, col, slen, limit;
 
 
+//prototypes
 char **editBuffer();
 char **emptyBuffer();
 int keyPress();
@@ -129,7 +130,6 @@ int keyPress() {
 		} else if (c == 27) {
 			 save();
 
-
 		} else {
 			insert(c);
 		}
@@ -146,6 +146,7 @@ int keyPress() {
 int right()
 {
 	//buffer+1 screen+2
+	//move 1 position in array, 2 in screen
 	move(y, (x++)+1);
 	//if (x > (strlen(b[y]) + 1)) {
 	if (b[y][x] == 0) {
@@ -155,6 +156,7 @@ int right()
 
 int left()
 {
+	//buffer - 1, screen - 2
 	move(y, (x--)-1);
 	//moveGap();
 	if (x < 0) {
@@ -201,14 +203,6 @@ int insert(int c)
 		println();
 	}
 }
-
-int moveGap()
-{
-	gb->start = x;
-	gb->end = (x+3);
-	gb->size = (gb->end - gb->start);
-}
-
 
 
 int shiftRight()
